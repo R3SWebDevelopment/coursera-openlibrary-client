@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var searchTerm: UITextField!
     @IBOutlet weak var searchResult: UITextView!
@@ -121,6 +121,10 @@ class ViewController: UIViewController {
         // Clean all input and output outlets
         self.searchTerm.text = ""
         self.searchResult.text = ""
+        self.searchTerm.delegate = self
+        
+        // Show keyboard by default
+        self.searchTerm.becomeFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
@@ -130,7 +134,7 @@ class ViewController: UIViewController {
     
     
     @IBAction func searchAction(_ sender: Any) {
-        self.searchResult.text = self.tempResults
+        self.searchBook(isbn: self.searchTerm.text!)
     }
     
     @IBAction func cleanAction(_ sender: Any) {
@@ -138,7 +142,38 @@ class ViewController: UIViewController {
         self.searchResult.text = ""
     }
     
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {   //delegate method
+        self.searchTerm.resignFirstResponder()
+        self.searchBook(isbn: self.searchTerm.text!)
+        return true
+    }
+    
+    func searchBook(isbn: String) -> Void {
+        
+        let urls = "https://openlibrary.org/api/books?jscmd=data&format=json&bibkeys=ISBN:" + isbn
+        let url = URL(string: urls)
+        
+        let session = URLSession.shared
+        
+        let compleationHandler = {
+            (data: Data?, resp: URLResponse?, error: Error?) -> Void in
+            let json = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+            DispatchQueue.main.async {
+                
+                self.searchResult.text = json! as String
+                
+            }
+            //self.setSearchResult(json: json! as String)
+        }
+        
+        session.dataTask(with: url!, completionHandler: compleationHandler).resume()
+        
+    }
     
 
+    func setSearchResult(json: String) -> Void {
+        self.searchResult.text = json
+    }
+    
 }
 
