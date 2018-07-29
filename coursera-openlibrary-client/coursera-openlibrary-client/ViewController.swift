@@ -157,22 +157,27 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         let compleationHandler = {
             (data: Data?, resp: URLResponse?, error: Error?) -> Void in
-            let json = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-            DispatchQueue.main.async {
-                
-                self.searchResult.text = json! as String
-                
+            if let error = error {
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "Request Error", message: error.localizedDescription, preferredStyle: .alert)
+                    
+                    alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                    
+                    self.present(alert, animated: true)
+                }
             }
-            //self.setSearchResult(json: json! as String)
+            else {
+                let json = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+                DispatchQueue.main.async {
+                    
+                    self.searchResult.text = json! as String
+                    
+                }
+            }
         }
         
         session.dataTask(with: url!, completionHandler: compleationHandler).resume()
         
-    }
-    
-
-    func setSearchResult(json: String) -> Void {
-        self.searchResult.text = json
     }
     
 }
